@@ -1,4 +1,4 @@
-from hw_asr.augmentations.wave_augmentations.Gain import Gain
+from hw_ss.augmentations.wave_augmentations.Gain import Gain
 
 __all__ = [
     "Gain"

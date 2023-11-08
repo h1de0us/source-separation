@@ -1,10 +1,10 @@
 from collections import Callable
 from typing import List
 
-import hw_asr.augmentations.spectrogram_augmentations
-import hw_asr.augmentations.wave_augmentations
-from hw_asr.augmentations.sequential import SequentialAugmentation
-from hw_asr.utils.parse_config import ConfigParser
+import hw_ss.augmentations.spectrogram_augmentations
+import hw_ss.augmentations.wave_augmentations
+from hw_ss.augmentations.sequential import SequentialAugmentation
+from hw_ss.utils.parse_config import ConfigParser
 
 
 def from_configs(configs: ConfigParser):
