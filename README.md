@@ -1,29 +1,23 @@
-# ASR project barebones
-
 ## Installation guide
 
-< Write your installation guide here >
-
+To install all dependencies, run:
 ```shell
 pip install -r ./requirements.txt
 ```
 
-## Recommended implementation order
+To create a mix, run `./create_mixture.sh` to download the dataset automatically and create mixes with the default parameters, or download dataset manually and run the following command:
+```
+python3 mix-creation.py \
+    --speakers_files_train <your-path-to-train-data> \
+    --speakers_files_val <your-path-to-val-data> \
+    --path_mixtures_train <output-folder-for-training-mixes> \
+    --path_mixtures_val <output-folder-for-validation-mixes> \
+    --nfiles-train <number-of-files-to-use-for-training-mixes> \
+    --nfiles-val <number-of-files-to-use-for-validation-mixes>
+```
 
-You might be a little intimidated by the number of folders and classes. Try to follow this steps to gradually undestand
-the workflow.
+To download the model checkpoint and configs, run `./run.sh`
 
-1) Test `hw_asr/tests/test_dataset.py`  and `hw_asr/tests/test_config.py` and make sure everythin works for you
-2) Implement missing functions to fix tests in  `hw_asr\tests\test_text_encoder.py`
-3) Implement missing functions to fix tests in  `hw_asr\tests\test_dataloader.py`
-4) Implement functions in `hw_asr\metric\utils.py`
-5) Implement missing function to run `train.py` with a baseline model
-6) Write your own model and try to overfit it on a single batch
-7) Implement ctc beam search and add metrics to calculate WER and CER over hypothesis obtained from beam search.
-8) ~~Pain and suffering~~ Implement your own models and train them. You've mastered this template when you can tune your
-   experimental setup just by tuning `configs.json` file and running `train.py`
-9) Don't forget to write a report about your work
-10) Get hired by Google the next day
 
 ## Before submitting
 
@@ -35,7 +29,7 @@ the workflow.
    python -m unittest discover hw_asr/tests
    ```
 3) Make sure `test.py` works fine and works as expected. You should create files `default_test_config.json` and your
-   installation guide should download your model checpoint and configs in `default_test_model/checkpoint.pth`
+   installation guide should download your model checkpoint and configs in `default_test_model/checkpoint.pth`
    and `default_test_model/config.json`.
    ```shell
    python test.py \
@@ -72,11 +66,3 @@ Notes:
 * `-e WANDB_API_KEY=<your_wandb_api_key>` -- set envvar for wandb (if you want to use it). You can find your API key
   here: https://wandb.ai/authorize
 
-## TODO
-
-These barebones can use more tests. We highly encourage students to create pull requests to add more tests / new
-functionality. Current demands:
-
-* Tests for beam search
-* README section to describe folders
-* Notebook to show how to work with `ConfigParser` and `config_parser.init_obj(...)`

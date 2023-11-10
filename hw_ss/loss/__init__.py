@@ -1,5 +1,5 @@
-from hw_ss.loss.CTCLossWrapper import CTCLossWrapper as CTCLoss
+from hw_ss.loss.SI_SNR_Wrapper import SiSnrWrapper as si_snr_loss
 
 __all__ = [
-    "CTCLoss"
+    "si_snr_loss"
 ]

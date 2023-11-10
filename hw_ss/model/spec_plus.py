@@ -42,8 +42,17 @@ class GlobalLayerNorm(nn.Module):
     # TODO !!!!
 
 
+# class DDSepConvolution(nn.Module):
+#     def __init__(self, *args, **kwargs) -> None:
+#         super(DDSepConvolution, self).__init__()
+
+
+#     def forward(self, x):
+#         pass
+
+
 class TCNBlock(nn.Module):
-    def __init__(self, in_channels, out_channels, is_first=False) -> None:
+    def __init__(self, in_channels, out_channels, is_first=False, kernel_size=3) -> None:
         super(TCNBlock, self).__init__()
         self.is_first = is_first
         self.conv_in = Conv1d(in_channels,
@@ -51,9 +60,16 @@ class TCNBlock(nn.Module):
                             kernel_size=1)
         self.prelu1 = PReLU(out_channels)
         self.global_layer_norm1 = GlobalLayerNorm() # TODO: some params
-        self.de_cnn = ... # TODO
+        self.de_cnn = Conv1d(
+            out_channels,
+            out_channels,
+            kernel_size=kernel_size,
+            groups=out_channels,
+            padding=(dilation * (kernel_size - 1)) // 2,
+            dilation=dilation,
+            bias=True)
         # “De-CNN” indicates a dilated depth-wise separable convolution.
-        # 
+        
         self.prelu2 = PReLU(out_channels)
         self.global_layer_norm2 = GlobalLayerNorm() # TODO: some params
         self.conv_out = Conv1d(out_channels,
@@ -76,7 +92,6 @@ class TCNBlock(nn.Module):
         outputs = self.conv_out(outputs)
         outputs = outputs + x
         return outputs
-
 
 
 
@@ -199,7 +214,7 @@ class SpeakerExtractor(nn.Module):
 
 
 
-class SpExPlus(BaseModel):
+class SpexPlus(BaseModel):
     def __init__(self, 
                  L1: int,
                  L2: int,
@@ -211,6 +226,7 @@ class SpExPlus(BaseModel):
                  spex_in_channels: int,
                  spex_out_channels: int,
                  n_tcns: int) -> None:
+        super(SpexPlus, self).__init__()
         self.speech_encoder = SpeechEncoder(L1, L2, L3, speech_enc_out_channels)
         self.speaker_encoder = SpeakerEncoder(spk_in_channels, spk_out_channels, n_resblocks)
         self.speaker_extractor = SpeakerExtractor(in_channels=spex_in_channels,

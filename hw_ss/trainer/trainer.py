@@ -10,11 +10,10 @@ from torch.nn.utils import clip_grad_norm_
 from torchvision.transforms import ToTensor
 from tqdm import tqdm
 
-from hw_asr.base import BaseTrainer
-from hw_asr.base.base_text_encoder import BaseTextEncoder
-from hw_asr.logger.utils import plot_spectrogram_to_buf
-from hw_asr.metric.utils import calc_cer, calc_wer
-from hw_asr.utils import inf_loop, MetricTracker
+from hw_ss.base import BaseTrainer
+from hw_ss.logger.utils import plot_spectrogram_to_buf
+from hw_ss.metric.utils import calc_cer, calc_wer
+from hw_ss.utils import inf_loop, MetricTracker
 
 
 class Trainer(BaseTrainer):
@@ -25,20 +24,20 @@ class Trainer(BaseTrainer):
     def __init__(
             self,
             model,
-            criterion,
+            spk_cls_criterion,
+            spk_ext_criterion,
             metrics,
             optimizer,
             config,
             device,
             dataloaders,
-            text_encoder,
             lr_scheduler=None,
             len_epoch=None,
             skip_oom=True,
     ):
-        super().__init__(model, criterion, metrics, optimizer, config, device)
+        super().__init__(model, spk_cls_criterion,
+            spk_ext_criterion, metrics, optimizer, config, device)
         self.skip_oom = skip_oom
-        self.text_encoder = text_encoder
         self.config = config
         self.train_dataloader = dataloaders["train"]
         if len_epoch is None:

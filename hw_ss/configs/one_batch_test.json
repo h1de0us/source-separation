@@ -15,15 +15,14 @@
     "spectrogram": []
   },
   "arch": {
-    "type": "BaselineModel",
+    "type": "SpecPlus",
     "args": {
-      "n_feats": 128,
-      "fc_hidden": 512
+      
     }
   },
   "data": {
     "train": {
-      "batch_size": 10,
+      "batch_size": 1,
       "num_workers": 0,
       "datasets": [
         {
@@ -60,25 +59,27 @@
     }
   },
   "loss": {
-    "type": "CTCLoss",
+    "type": "si_snr_loss",
     "args": {}
   },
   "metrics": [
     {
-      "type": "ArgmaxWERMetric",
+      "type": "PESQMetric",
       "args": {
-        "name": "WER (argmax)"
+        "name": "PESQ",
+        "mode": "wb",
+        "fs": 8000,
       }
     },
     {
-      "type": "ArgmaxCERMetric",
+      "type": "SiSnrMetric",
       "args": {
-        "name": "CER (argmax)"
+        "name": "SI-SNR"
       }
     }
   ],
   "lr_scheduler": {
-    "type": "OneCycleLR",
+    "type": "CosineAnnelingLR",
     "args": {
       "steps_per_epoch": 100,
       "epochs": 50,
@@ -95,7 +96,7 @@
     "monitor": "min val_loss",
     "early_stop": 100,
     "visualize": "wandb",
-    "wandb_project": "asr_project",
+    "wandb_project": "source_separation",
     "len_epoch": 100,
     "grad_norm_clip": 10
   }

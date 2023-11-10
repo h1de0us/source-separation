@@ -3,8 +3,8 @@ from abc import abstractmethod
 import torch
 from numpy import inf
 
-from hw_asr.base import BaseModel
-from hw_asr.logger import get_visualizer
+from hw_ss.base import BaseModel
+from hw_ss.logger import get_visualizer
 
 
 class BaseTrainer:
@@ -12,15 +12,17 @@ class BaseTrainer:
     Base class for all trainers
     """
 
-    def __init__(self, model: BaseModel, criterion, metrics, optimizer, config, device):
+    def __init__(self, model: BaseModel, spk_cls_criterion, spk_ext_criterion, metrics, optimizer, scheduler, config, device):
         self.device = device
         self.config = config
         self.logger = config.get_logger("trainer", config["trainer"]["verbosity"])
 
         self.model = model
-        self.criterion = criterion
+        self.spk_cls_criterion = spk_cls_criterion
+        self.spk_ext_criterion = spk_ext_criterion
         self.metrics = metrics
         self.optimizer = optimizer
+        self.scheduler = scheduler
 
         # for interrupt saving
         self._last_epoch = 0
@@ -145,6 +147,8 @@ class BaseTrainer:
             "monitor_best": self.mnt_best,
             "config": self.config,
         }
+        if self.scheduler:
+            state["scheduler"] = self.scheduler.state_dict()
         filename = str(self.checkpoint_dir / "checkpoint-epoch{}.pth".format(epoch))
         if not (only_best and save_best):
             torch.save(state, filename)
@@ -185,6 +189,8 @@ class BaseTrainer:
             )
         else:
             self.optimizer.load_state_dict(checkpoint["optimizer"])
+            if self.scheduler:
+                self.scheduler.load_state_dict(checkpoint["scheduler"])
 
         self.logger.info(
             "Checkpoint loaded. Resume training from epoch {}".format(self.start_epoch)
