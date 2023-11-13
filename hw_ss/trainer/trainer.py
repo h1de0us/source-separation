@@ -12,7 +12,6 @@ from tqdm import tqdm
 
 from hw_ss.base import BaseTrainer
 from hw_ss.logger.utils import plot_spectrogram_to_buf
-from hw_ss.metric.utils import calc_cer, calc_wer
 from hw_ss.utils import inf_loop, MetricTracker
 
 
@@ -24,8 +23,7 @@ class Trainer(BaseTrainer):
     def __init__(
             self,
             model,
-            spk_cls_criterion,
-            spk_ext_criterion,
+            criterion,
             metrics,
             optimizer,
             config,
@@ -35,8 +33,7 @@ class Trainer(BaseTrainer):
             len_epoch=None,
             skip_oom=True,
     ):
-        super().__init__(model, spk_cls_criterion,
-            spk_ext_criterion, metrics, optimizer, config, device)
+        super().__init__(model, criterion, metrics, optimizer, lr_scheduler, config, device)
         self.skip_oom = skip_oom
         self.config = config
         self.train_dataloader = dataloaders["train"]
@@ -63,8 +60,8 @@ class Trainer(BaseTrainer):
         """
         Move all necessary tensors to the HPU
         """
-        for tensor_for_gpu in ["spectrogram", "text_encoded"]:
-            batch[tensor_for_gpu] = batch[tensor_for_gpu].to(device)
+        # for tensor_for_gpu in ["spectrogram", "text_encoded"]:
+            # batch[tensor_for_gpu] = batch[tensor_for_gpu].to(device)
         return batch
 
     def _clip_grad_norm(self):
@@ -135,24 +132,22 @@ class Trainer(BaseTrainer):
         if is_train:
             self.optimizer.zero_grad()
         outputs = self.model(**batch)
+        # here we update out batch with the params from model.forward
         if type(outputs) is dict:
             batch.update(outputs)
         else:
             batch["logits"] = outputs
-
-        batch["log_probs"] = F.log_softmax(batch["logits"], dim=-1)
-        batch["log_probs_length"] = self.model.transform_input_lengths(
-            batch["spectrogram_length"]
-        )
-        batch["loss"] = self.criterion(**batch)
+        
+        # we estimate loss only while training, because of the classification task
         if is_train:
+            batch["loss"] = self.criterion(**batch)
             batch["loss"].backward()
             self._clip_grad_norm()
             self.optimizer.step()
             if self.lr_scheduler is not None:
                 self.lr_scheduler.step()
-
-        metrics.update("loss", batch["loss"].item())
+            metrics.update("loss", batch["loss"].item())
+        
         for met in self.metrics:
             metrics.update(met.name, met(**batch))
         return batch
@@ -199,38 +194,20 @@ class Trainer(BaseTrainer):
 
     def _log_predictions(
             self,
-            text,
-            log_probs,
-            log_probs_length,
-            audio_path,
             examples_to_log=10,
             *args,
             **kwargs,
     ):
-        # TODO: implement logging of beam search results
         if self.writer is None:
             return
-        argmax_inds = log_probs.cpu().argmax(-1).numpy()
-        argmax_inds = [
-            inds[: int(ind_len)]
-            for inds, ind_len in zip(argmax_inds, log_probs_length.numpy())
-        ]
-        argmax_texts_raw = [self.text_encoder.decode(inds) for inds in argmax_inds]
-        argmax_texts = [self.text_encoder.ctc_decode(inds) for inds in argmax_inds]
-        tuples = list(zip(argmax_texts, text, argmax_texts_raw, audio_path))
-        shuffle(tuples)
-        rows = {}
-        for pred, target, raw_pred, audio_path in tuples[:examples_to_log]:
-            target = BaseTextEncoder.normalize_text(target)
-            wer = calc_wer(target, pred) * 100
-            cer = calc_cer(target, pred) * 100
 
+        # TODO: log audios
+        tuples = (kwargs['short'], kwargs['target'], kwargs['path_prefix'])
+        rows = {}
+        for pred, target, audio_path in tuples[:examples_to_log]:
             rows[Path(audio_path).name] = {
                 "target": target,
-                "raw prediction": raw_pred,
                 "predictions": pred,
-                "wer": wer,
-                "cer": cer,
             }
         self.writer.add_table("predictions", pd.DataFrame.from_dict(rows, orient="index"))
 

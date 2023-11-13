@@ -1,5 +1,5 @@
-from hw_ss.loss.SI_SNR_Wrapper import SiSnrWrapper as si_snr_loss
+from hw_ss.loss.SpexLoss import SpexLoss
 
 __all__ = [
-    "si_snr_loss"
+    "SpexLoss"
 ]

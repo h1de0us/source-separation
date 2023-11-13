@@ -15,9 +15,18 @@
     "spectrogram": []
   },
   "arch": {
-    "type": "SpecPlus",
+    "type": "SpexPlus",
     "args": {
-      
+      "L1": 20,
+      "L2": 80,
+      "L3": 160,
+      "speech_enc_out_channels": 32, 
+      "speak_ex_in_channels": 32, 
+      "speak_ex_out_channels": 64,
+      "speak_embed_dim": 32, 
+      "n_tcns": 4,
+      "n_tcn_blocks": 8,
+      "num_speakers": 251
     }
   },
   "data": {
@@ -26,27 +35,21 @@
       "num_workers": 0,
       "datasets": [
         {
-          "type": "LibrispeechDataset",
+          "type": "LibrispeechMixDataset",
           "args": {
-            "part": "dev-clean",
-            "max_audio_length": 20.0,
-            "max_text_length": 200,
-            "limit": 10
+            "path": "data/datasets/mixes/train"
           }
         }
       ]
     },
     "val": {
-      "batch_size": 10,
+      "batch_size": 1,
       "num_workers": 0,
       "datasets": [
         {
-          "type": "LibrispeechDataset",
+          "type": "LibrispeechMixDataset",
           "args": {
-            "part": "dev-clean",
-            "max_audio_length": 20.0,
-            "max_text_length": 200,
-            "limit": 10
+            "path": "data/datasets/mixes/val"
           }
         }
       ]
@@ -59,8 +62,12 @@
     }
   },
   "loss": {
-    "type": "si_snr_loss",
-    "args": {}
+    "type": "SpexLoss",
+    "args": {
+      "alpha": 0.1,
+      "beta": 0.1,
+      "gamma": 0.5
+    }
   },
   "metrics": [
     {
@@ -68,7 +75,7 @@
       "args": {
         "name": "PESQ",
         "mode": "wb",
-        "fs": 8000,
+        "fs": 16000
       }
     },
     {
@@ -79,7 +86,7 @@
     }
   ],
   "lr_scheduler": {
-    "type": "CosineAnnelingLR",
+    "type": "OneCycleLR",
     "args": {
       "steps_per_epoch": 100,
       "epochs": 50,

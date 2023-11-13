@@ -5,6 +5,7 @@ import random
 import soundfile as sf
 import pyloudnorm as pyln
 from concurrent.futures import ProcessPoolExecutor
+from glob import glob
 
 def snr_mixer(clean, noise, snr):
     amp_noise = np.linalg.norm(clean) / 10**(snr / 20)
@@ -72,6 +73,7 @@ def create_mix(idx, triplet, snr_levels, out_dir, test=False, sr=16000, **kwargs
     louds2 = meter.integrated_loudness(s2)
     loudsRef = meter.integrated_loudness(ref)
 
+    # нормализация по громкости
     s1Norm = pyln.normalize.loudness(s1, louds1, -29)
     s2Norm = pyln.normalize.loudness(s2, louds2, -29)
     refNorm = pyln.normalize.loudness(ref, loudsRef, -23.0)
@@ -83,6 +85,7 @@ def create_mix(idx, triplet, snr_levels, out_dir, test=False, sr=16000, **kwargs
     if amp_s1 == 0 or amp_s2 == 0 or amp_ref == 0:
         return
 
+    # для трейна можем убрать тишину
     if trim_db:
         ref, _ = librosa.effects.trim(refNorm, top_db=trim_db)
         s1, _ = librosa.effects.trim(s1Norm, top_db=trim_db)
@@ -98,7 +101,7 @@ def create_mix(idx, triplet, snr_levels, out_dir, test=False, sr=16000, **kwargs
     snr = np.random.choice(snr_levels, 1).item()
 
     if not test:
-        s1, s2 = vad_merge(s1, vad_db), vad_merge(s2, vad_db)
+        # s1, s2 = vad_merge(s1, vad_db), vad_merge(s2, vad_db)
         s1_cut, s2_cut = cut_audios(s1, s2, audioLen, sr)
 
         for i in range(len(s1_cut)):

@@ -16,29 +16,13 @@ python3 mix-creation.py \
     --nfiles-val <number-of-files-to-use-for-validation-mixes>
 ```
 
-To download the model checkpoint and configs, run `./run.sh`
+To (try to) train a model, run 
+```
+python3 train.py -c hw_ss/config.json
+```
 
+Unfortunately, there is no checkpoint, as all my attempts to train the model were unsuccessful. However, I was very close :(
 
-## Before submitting
-
-0) Make sure your projects run on a new machine after complemeting the installation guide or by 
-   running it in docker container.
-1) Search project for `# TODO: your code here` and implement missing functionality
-2) Make sure all tests work without errors
-   ```shell
-   python -m unittest discover hw_asr/tests
-   ```
-3) Make sure `test.py` works fine and works as expected. You should create files `default_test_config.json` and your
-   installation guide should download your model checkpoint and configs in `default_test_model/checkpoint.pth`
-   and `default_test_model/config.json`.
-   ```shell
-   python test.py \
-      -c default_test_config.json \
-      -r default_test_model/checkpoint.pth \
-      -t test_data \
-      -o test_result.json
-   ```
-4) Use `train.py` for training
 
 ## Credits
 
@@ -50,7 +34,7 @@ of [pytorch-template](https://github.com/victoresque/pytorch-template) repositor
 You can use this project with docker. Quick start:
 
 ```bash 
-docker build -t my_hw_asr_image . 
+docker build -t my_hw_ss_image . 
 docker run \
    --gpus '"device=0"' \
    -it --rm \

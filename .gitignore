@@ -110,3 +110,6 @@ wandb/
 .vscode/
 .idea/
 __MACOSX/
+
+# additional files
+dummy.py

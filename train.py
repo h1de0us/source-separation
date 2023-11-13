@@ -30,7 +30,6 @@ def main(config):
     dataloaders = get_dataloaders(config)
 
     # build model architecture, then print to console
-    # TODO: remove text_encoder, possibly change config.init_obj
     model = config.init_obj(config["arch"], module_arch)
     logger.info(model)
 

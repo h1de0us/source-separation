@@ -1,5 +1,4 @@
 #/bin/bash
 
-
-
-# python3 TODO: args
+# all the default variables are mentioned in argparse
+python3 mix-creation.py
